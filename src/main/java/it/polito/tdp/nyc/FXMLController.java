@@ -2,7 +2,13 @@ package it.polito.tdp.nyc;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import org.jgrapht.graph.DefaultWeightedEdge;
+import org.jgrapht.graph.SimpleWeightedGraph;
+
+import it.polito.tdp.nyc.model.ArcoPeso;
 import it.polito.tdp.nyc.model.Model;
+import it.polito.tdp.nyc.model.NTA;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -41,7 +47,7 @@ public class FXMLController {
     private TableColumn<?, ?> clV2; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbBorough"
-    private ComboBox<?> cmbBorough; // Value injected by FXMLLoader
+    private ComboBox<String> cmbBorough; // Value injected by FXMLLoader
 
     @FXML // fx:id="tblArchi"
     private TableView<?> tblArchi; // Value injected by FXMLLoader
@@ -57,13 +63,30 @@ public class FXMLController {
 
     @FXML
     void doAnalisiArchi(ActionEvent event) {
+    	 model.archiPesoMaggiore();
     	
+    	txtResult.setText("PESO MEDIO: " + model.getPesoMedio() + '\n');
+    	txtResult.appendText("ARCHI CON PESO MAGGIORE DEL PESO MEDIO: " + model.archiPesoMaggiore().size() + "\n\n");
+    	
+    	for (ArcoPeso ap : model.archiPesoMaggiore())
+    		txtResult.appendText(ap.toString() + '\n');
 
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
     	
+    	if (this.cmbBorough.getValue() == null) {
+    		txtResult.setText("Scegli un borgo");
+    		return;
+    	}
+    	
+    	SimpleWeightedGraph<NTA, DefaultWeightedEdge> graph = model.creaGrafo(cmbBorough.getValue());
+    	
+    	txtResult.setText("Grafo creato con " + graph.vertexSet().size() + " vertici e " + graph.edgeSet().size() + " archi.\n\n");
+    	
+    	this.btnAdiacenti.setDisable(false);
+    	this.btnCreaLista.setDisable(false);
     }
 
     @FXML
@@ -90,6 +113,11 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	
+    	this.cmbBorough.getItems().addAll(model.getAllBorough());
+    	
+    	this.btnAdiacenti.setDisable(true);
+    	this.btnCreaLista.setDisable(true);
     }
 
 }
