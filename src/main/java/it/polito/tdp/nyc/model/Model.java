@@ -5,8 +5,8 @@ import java.util.*;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleWeightedGraph;
-
 import it.polito.tdp.nyc.db.NYCDao;
+import it.polito.tdp.nyc.model.Evento.EventType;
 
 public class Model {
 	
@@ -71,8 +71,86 @@ public class Model {
 		return pesoMedio;
 	}
 	
+	public void run(double p, int d) {
+		
+		List<NTA> vertex = new ArrayList<>(graph.vertexSet());
+		
+		PriorityQueue<Evento> queue = new PriorityQueue<>();
+		
+		for (int i=1; i<=100; i++) {
+			if (Math.random() < p) {
+				NTA scelto = vertex.get((int) (vertex.size()*Math.random()));
+				scelto.aggiungiFile();
+				Evento event = new Evento(scelto,i,d, EventType.CONDIVISIONE);
+				queue.add(event);
+			}
+		}
+		
+		while (!queue.isEmpty()) {
+			
+			Evento event = queue.poll();
+			NTA ntaCorrente = event.getNta();
+			int duration = event.getDurata();
+			int time = event.getTime();
+			EventType type = event.getType();
+			
+			
+			
+			if (time > 100)
+				return;
+			System.out.println(event.toString());
+			switch(type){
+				
+			case CONDIVISIONE:
+				
+				NTA vicino = trovaNTA(ntaCorrente);
+				
+				if (vicino != null) {
+				
+				Evento ricondivisione = new Evento(vicino,time+1,(int) Math.ceil(duration/2), EventType.CONDIVISIONE);
+				Evento termine = new Evento(ntaCorrente,time+duration, 0, EventType.TERMINE);
+				
+				queue.add(termine);
+				
+				if (ricondivisione.getDurata() > 0) {
+					queue.add(ricondivisione);
+					vicino.aggiungiFile();
+				}
+				}
+				
+				break;
+				
+			case TERMINE:
+				
+				ntaCorrente.rimuoviFile();
+
+				break;
+			}			
+		}
+		
+	}
 	
-	
-	
+	private NTA trovaNTA(NTA corrente) {
+		
+		List<NTA> vicini = Graphs.neighborListOf(graph, corrente);
+		List<NTA> copiaVicini = Graphs.neighborListOf(graph, corrente);
+		
+		for (NTA nta : copiaVicini)
+			if (nta.getNumFileCondivisi() > 0)
+				vicini.remove(nta);
+		
+		double pesoMax = 0.0;
+		
+		for (NTA vicino : vicini)
+			if (graph.getEdgeWeight(graph.getEdge(vicino, corrente)) > pesoMax)
+				pesoMax = graph.getEdgeWeight(graph.getEdge(vicino, corrente));
+		
+		for (NTA vicino : vicini)
+			if (graph.getEdgeWeight(graph.getEdge(vicino, corrente)) == pesoMax)
+				return vicino;
+		
+		return null;
+		
+	}
 	
 }

@@ -1,6 +1,8 @@
 package it.polito.tdp.nyc;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -91,6 +93,38 @@ public class FXMLController {
 
     @FXML
     void doSimula(ActionEvent event) {
+    	
+    	if (this.txtDurata.getText() == "") {
+    		txtResult.setText("Inserisci una durata");
+    		return;
+    	}
+    	
+    	if (this.txtProb.getText() == "") {
+    		txtResult.setText("Inserisci una probabilità");
+    		return;
+    	}
+    	
+    	try {
+    		Double.parseDouble(txtProb.getText());
+    		Integer.parseInt(txtDurata.getText());
+    		if (Double.parseDouble(txtProb.getText()) < 0.2 || Double.parseDouble(txtProb.getText()) > 0.9){
+    				txtResult.setText("Inserisci una probabillità tra 0.2 e 0.9");
+    				return;
+    	}
+    		
+    	}
+    	catch (Exception e) {
+    		txtResult.setText("Inserisci dei valori numerici");
+    		return;
+    	}
+    	
+    	model.run(Double.parseDouble(txtProb.getText()),Integer.parseInt(txtDurata.getText()));
+    	
+    	List<NTA> vertici = new ArrayList<>(model.getGraph().vertexSet());
+    	
+    	for (NTA nta : vertici) {
+    		txtResult.appendText(nta.toString() + ": \ntotale condivisi: " + nta.getMaxCondivisi() + "\nattualmente in condivisione: " + nta.getNumFileCondivisi() + "\n\n");
+    	}
 
     }
 
